@@ -16,13 +16,9 @@ echo "Filtrando Subdominios"
 cat subdominio | uniq -u > subdominios_filtrados
 clear
 echo "Resolvendo subdominios"
-cat subdominios_filtrados | httpx -silent | tee -a subdominios_resolvidos
 clear
-for i in $(cat subdominios_resolvidos);do
-    echo $i | httpx -silent -td -nc | grep -F '[' | awk '!($1="")' | tr -d '[]' | sed 's/ /_/g' | sed 's/,/\n/g' | sed 's/^_//g' > tecnologias
-    echo $i | httpx -silent -server -nc | grep -F '[' | awk '!($1="")' | tr -d '[]' | sed 's/ /_/g' | sed 's/,/\n/g' | sed 's/^_//g' | sed -r '/^\s*$/d' > server
-    echo '######'
-    echo $i
-    cat tecnologias
-    cat server
+echo "Subdominios 200 OK"
+cat subdominios_filtrados | httpx -silent -mc 200 | tee -a subdominios_resolvidos
+gowitness file -f subdominios_resolvidos
+
 done
