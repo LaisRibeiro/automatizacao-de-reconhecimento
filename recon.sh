@@ -14,6 +14,8 @@ read -n1 -s escolha
 
 case $escolha in
     "S"|"s")
+        mkdir $1
+        cd $1
         echo "Iniciando processo"
 	        assetfinder $dominio | tee -a subdominio
             subfinder -silent -d $dominio 2>/dev/null | tee -a subdominio
@@ -27,12 +29,21 @@ case $escolha in
             echo "Subdominios 200 OK, verifique no arquivo subdominios_filtrados"
             cat subdominios_filtrados | httpx -silent -mc 200 | tee -a subdominios_resolvidos | sort -u 1> subdominios_resolvidos
             cat subdominios_resolvidos
+            echo "\nGowitness"
             gowitness file -f subdominios_resolvidos
             cat subdominios_resolvidos | httpx -silent -ip | awk '{print $2}' | tr -d '[]' &>ips
-            echo "Começando Portscan"
-            nmap -iL ips -sSV -p80,443 --open -Pn 1>nmap_scan
-            echo "Resultados:"
-            cat nmap_scan | grep "open"
+            for i in $(cat ips)
+            do
+                for x in $(cat subdominios_resolvidos)
+                do
+                    echo "Começando Portscan:"
+                    echo $x
+                    rm nmap_scan
+                    nmap -sSV -p80,443 --open -Pn $i 1>>nmap_scan
+                    echo "Resultados:"
+                    cat nmap_scan | grep "open"
+                done
+            done
 	        ;;
     "N"|"n")
         echo "Iniciando processo"
@@ -41,7 +52,6 @@ case $escolha in
         findomain-linux -t $dominio -q | tee -a subdominio
         clear
         echo "Filtrando Subdominios"
-        cat subdominio | uniq -u > subdominios_filtrados
         clear
         echo "Resolvendo subdominios"
         clear
@@ -55,6 +65,7 @@ case $escolha in
         echo "Resultados:"
         cat nmap_scan | grep "open"
 	    ;;
+
 
 
     
